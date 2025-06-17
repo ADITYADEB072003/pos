@@ -1,15 +1,29 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { LoginForm } from './components/auth/LoginForm';
 import { SignupForm } from './components/auth/SignupForm';
 import { Sidebar } from './components/layout/Sidebar';
-import { Dashboard } from './components/dashboard/Dashboard';
-import { POSTerminal } from './components/pos/POSTerminal';
-import { InventoryManagement } from './components/inventory/InventoryManagement';
-import { SalesReports } from './components/sales/SalesReports';
 import { Product, Sale } from './types';
 import { authService, AuthUser } from './services/authService';
 import { productService } from './services/productService';
 import { salesService } from './services/salesService';
+
+// Lazy load components for better performance
+const Dashboard = lazy(() => import('./components/dashboard/Dashboard').then(module => ({ default: module.Dashboard })));
+const POSTerminal = lazy(() => import('./components/pos/POSTerminal').then(module => ({ default: module.POSTerminal })));
+const InventoryManagement = lazy(() => import('./components/inventory/InventoryManagement').then(module => ({ default: module.InventoryManagement })));
+const SalesReports = lazy(() => import('./components/sales/SalesReports').then(module => ({ default: module.SalesReports })));
+const UserManagement = lazy(() => import('./components/users/UserManagement').then(module => ({ default: module.UserManagement })));
+const Settings = lazy(() => import('./components/settings/Settings').then(module => ({ default: module.Settings })));
+
+// Loading component
+const LoadingSpinner = () => (
+  <div className="flex items-center justify-center h-full">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+      <p className="text-gray-600">Loading...</p>
+    </div>
+  </div>
+);
 
 function App() {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
@@ -52,6 +66,26 @@ function App() {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Real-time data synchronization
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const [productsData, salesData] = await Promise.all([
+          productService.getProducts(),
+          salesService.getSales()
+        ]);
+        setProducts(productsData);
+        setSales(salesData);
+      } catch (error) {
+        console.error('Error syncing data:', error);
+      }
+    }, 30000); // Sync every 30 seconds
+
+    return () => clearInterval(interval);
+  }, [currentUser]);
 
   const loadData = async () => {
     try {
@@ -142,6 +176,9 @@ function App() {
     try {
       const sale = await salesService.createSale(saleData);
       setSales(prev => [sale, ...prev]);
+      // Refresh products to get updated quantities
+      const updatedProducts = await productService.getProducts();
+      setProducts(updatedProducts);
     } catch (error) {
       console.error('Error creating sale:', error);
       alert('Failed to process sale');
@@ -151,10 +188,7 @@ function App() {
   if (dataLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
+        <LoadingSpinner />
       </div>
     );
   }
@@ -189,7 +223,7 @@ function App() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 overflow-hidden">
       <Sidebar 
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -197,79 +231,80 @@ function App() {
         userRole={currentUser.role}
       />
       
-      <div className="flex-1 overflow-hidden">
-        {activeTab === 'dashboard' && (
-          <Dashboard 
-            sales={sales}
-            products={products}
-            currentUser={{
-              id: currentUser.id,
-              username: currentUser.email,
-              email: currentUser.email,
-              role: currentUser.role,
-              name: currentUser.name,
-              createdAt: new Date()
-            }}
-          />
-        )}
-        
-        {activeTab === 'pos' && (
-          <POSTerminal
-            products={products}
-            onSale={handleSale}
-            onUpdateProduct={handleUpdateProduct}
-            currentUser={{
-              id: currentUser.id,
-              username: currentUser.email,
-              email: currentUser.email,
-              role: currentUser.role,
-              name: currentUser.name,
-              createdAt: new Date()
-            }}
-          />
-        )}
-        
-        {activeTab === 'inventory' && currentUser.role === 'admin' && (
-          <InventoryManagement
-            products={products}
-            onAddProduct={handleAddProduct}
-            onUpdateProduct={handleUpdateProduct}
-            onDeleteProduct={handleDeleteProduct}
-            currentUser={{
-              id: currentUser.id,
-              username: currentUser.email,
-              email: currentUser.email,
-              role: currentUser.role,
-              name: currentUser.name,
-              createdAt: new Date()
-            }}
-          />
-        )}
-        
-        {activeTab === 'sales' && (
-          <SalesReports
-            sales={sales}
-            currentUser={{
-              id: currentUser.id,
-              username: currentUser.email,
-              email: currentUser.email,
-              role: currentUser.role,
-              name: currentUser.name,
-              createdAt: new Date()
-            }}
-          />
-        )}
-        
-        {(activeTab === 'users' || activeTab === 'settings') && currentUser.role === 'admin' && (
-          <div className="p-6 flex items-center justify-center h-full">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                {activeTab === 'users' ? 'User Management' : 'Settings'}
-              </h2>
-              <p className="text-gray-600">This feature will be implemented in the next version.</p>
-            </div>
-          </div>
-        )}
+      <div className="flex-1 overflow-hidden lg:ml-0">
+        <div className="h-full overflow-y-auto">
+          <Suspense fallback={<LoadingSpinner />}>
+            {activeTab === 'dashboard' && (
+              <Dashboard 
+                sales={sales}
+                products={products}
+                currentUser={{
+                  id: currentUser.id,
+                  username: currentUser.email,
+                  email: currentUser.email,
+                  role: currentUser.role,
+                  name: currentUser.name,
+                  createdAt: new Date()
+                }}
+              />
+            )}
+            
+            {activeTab === 'pos' && (
+              <POSTerminal
+                products={products}
+                onSale={handleSale}
+                onUpdateProduct={handleUpdateProduct}
+                currentUser={{
+                  id: currentUser.id,
+                  username: currentUser.email,
+                  email: currentUser.email,
+                  role: currentUser.role,
+                  name: currentUser.name,
+                  createdAt: new Date()
+                }}
+              />
+            )}
+            
+            {activeTab === 'inventory' && currentUser.role === 'admin' && (
+              <InventoryManagement
+                products={products}
+                onAddProduct={handleAddProduct}
+                onUpdateProduct={handleUpdateProduct}
+                onDeleteProduct={handleDeleteProduct}
+                currentUser={{
+                  id: currentUser.id,
+                  username: currentUser.email,
+                  email: currentUser.email,
+                  role: currentUser.role,
+                  name: currentUser.name,
+                  createdAt: new Date()
+                }}
+              />
+            )}
+            
+            {activeTab === 'sales' && (
+              <SalesReports
+                sales={sales}
+                currentUser={{
+                  id: currentUser.id,
+                  username: currentUser.email,
+                  email: currentUser.email,
+                  role: currentUser.role,
+                  name: currentUser.name,
+                  createdAt: new Date()
+                }}
+              />
+            )}
+            
+            {activeTab === 'users' && currentUser.role === 'admin' && (
+              <UserManagement />
+            )}
+            
+            {activeTab === 'settings' && currentUser.role === 'admin' && (
+              <Settings />
+            )}
+          </Suspense>
+        </div>
       </div>
     </div>
   );

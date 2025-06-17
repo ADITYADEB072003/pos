@@ -7,7 +7,7 @@ import { Receipt } from './Receipt';
 
 interface POSTerminalProps {
   products: Product[];
-  onSale: (sale: Sale) => void;
+  onSale: (sale: Omit<Sale, 'id' | 'timestamp'>) => void;
   onUpdateProduct: (product: Product) => void;
   currentUser: User;
 }
@@ -139,10 +139,10 @@ export const POSTerminal: React.FC<POSTerminalProps> = ({
   };
 
   return (
-    <div className="flex h-full bg-gray-50">
-      <div className="flex-1 p-6">
+    <div className="flex flex-col lg:flex-row h-full bg-gray-50">
+      <div className="flex-1 p-4 lg:p-6 overflow-y-auto">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">POS Terminal</h1>
+          <h1 className="text-xl lg:text-2xl font-bold text-gray-900 mb-2">POS Terminal</h1>
           <p className="text-gray-600">Scan or search for products to add to cart</p>
         </div>
         
@@ -152,7 +152,7 @@ export const POSTerminal: React.FC<POSTerminalProps> = ({
         />
       </div>
 
-      <div className="w-96 bg-white border-l border-gray-200">
+      <div className="w-full lg:w-96 bg-white border-t lg:border-t-0 lg:border-l border-gray-200 flex-shrink-0">
         <Cart
           items={cart}
           total={cartTotal}
@@ -180,3 +180,5 @@ export const POSTerminal: React.FC<POSTerminalProps> = ({
     </div>
   );
 };
+
+export default POSTerminal;

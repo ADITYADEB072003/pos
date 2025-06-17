@@ -32,7 +32,7 @@ export const ProductSearch: React.FC<ProductSearchProps> = ({
   return (
     <div className="space-y-6">
       {/* Search and Filters */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+      <div className="bg-white rounded-xl p-4 lg:p-6 shadow-sm border border-gray-100">
         <div className="flex flex-col lg:flex-row gap-4">
           <div className="flex-1">
             <div className="relative">
@@ -63,7 +63,7 @@ export const ProductSearch: React.FC<ProductSearchProps> = ({
       </div>
 
       {/* Products Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {filteredProducts.map(product => (
           <div
             key={product.id}
@@ -84,7 +84,7 @@ export const ProductSearch: React.FC<ProductSearchProps> = ({
               </span>
             </div>
             
-            <h3 className="font-semibold text-gray-900 mb-1 line-clamp-2">
+            <h3 className="font-semibold text-gray-900 mb-1 line-clamp-2 text-sm lg:text-base">
               {product.name}
             </h3>
             <p className="text-sm text-gray-600 mb-2">{product.category}</p>
@@ -102,7 +102,7 @@ export const ProductSearch: React.FC<ProductSearchProps> = ({
             <button
               onClick={() => onAddToCart(product, 1)}
               disabled={product.quantity === 0}
-              className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors duration-200 flex items-center justify-center space-x-2"
+              className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors duration-200 flex items-center justify-center space-x-2 text-sm"
             >
               <Plus className="h-4 w-4" />
               <span>{product.quantity === 0 ? 'Out of Stock' : 'Add to Cart'}</span>
