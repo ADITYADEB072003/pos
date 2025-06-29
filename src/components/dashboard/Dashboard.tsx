@@ -4,8 +4,7 @@ import {
   DollarSign, 
   ShoppingBag, 
   Package,
-  AlertTriangle,
-  Users
+  AlertTriangle
 } from 'lucide-react';
 import { Sale, Product, User } from '../../types';
 import { 
@@ -75,7 +74,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   return (
     <div className="p-4 lg:p-6 max-w-7xl mx-auto">
-      <div className="mb-6 lg:mb-8">
+      <div className="mb-6">
         <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">
           Welcome back, {currentUser.name}!
         </h1>
@@ -83,20 +82,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6 lg:mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <div key={index} className="bg-white rounded-xl p-4 lg:p-6 shadow-sm border border-gray-100">
-              <div className="flex items-center justify-between mb-4">
-                <div className={`${stat.color} rounded-lg p-2 lg:p-3`}>
-                  <Icon className="h-5 w-5 lg:h-6 lg:w-6 text-white" />
+            <div key={index} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+              <div className="flex items-center justify-between mb-3">
+                <div className={`${stat.color} rounded-lg p-2`}>
+                  <Icon className="h-5 w-5 text-white" />
                 </div>
-                <span className="text-emerald-500 text-xs lg:text-sm font-semibold">
+                <span className="text-emerald-500 text-xs font-semibold">
                   {stat.change}
                 </span>
               </div>
-              <h3 className="text-xl lg:text-2xl font-bold text-gray-900 mb-1">
+              <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-1">
                 {stat.value}
               </h3>
               <p className="text-gray-600 text-sm">{stat.label}</p>
@@ -106,7 +105,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       </div>
 
       {/* Charts and Alerts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 mb-6 lg:mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         <div className="lg:col-span-2">
           <SalesChart data={weeklySales} />
         </div>

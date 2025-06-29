@@ -2,6 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Performance optimizations */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
@@ -20,7 +37,7 @@
   background: #94a3b8;
 }
 
-/* Loading animations */
+/* Optimized animations */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -33,7 +50,22 @@
 }
 
 .fade-in {
-  animation: fadeIn 0.3s ease-out;
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Line clamp utilities */
+.line-clamp-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+}
+
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 /* Print styles */
@@ -54,32 +86,30 @@
   }
 }
 
-/* Mobile optimizations */
-@media (max-width: 768px) {
-  .line-clamp-1 {
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
-  }
-  
-  .line-clamp-2 {
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-  }
-}
-
 /* Focus styles for accessibility */
 .focus-visible:focus {
   outline: 2px solid #3b82f6;
   outline-offset: 2px;
 }
 
-/* Smooth transitions */
+/* Optimized transitions - reduced from 150ms to 100ms */
 * {
-  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+  transition-property: color, background-color, border-color, opacity, transform;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
+  transition-duration: 100ms;
+}
+
+/* Disable transitions during page load for better performance */
+.preload * {
+  transition: none !important;
+}
+
+/* Image loading optimization */
+img {
+  content-visibility: auto;
+}
+
+/* Layout optimization */
+.container {
+  contain: layout style paint;
 }

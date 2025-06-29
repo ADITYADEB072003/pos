@@ -15,12 +15,12 @@ const SalesReports = lazy(() => import('./components/sales/SalesReports').then(m
 const UserManagement = lazy(() => import('./components/users/UserManagement').then(module => ({ default: module.UserManagement })));
 const Settings = lazy(() => import('./components/settings/Settings').then(module => ({ default: module.Settings })));
 
-// Loading component
+// Optimized loading component
 const LoadingSpinner = () => (
-  <div className="flex items-center justify-center h-full min-h-[400px]">
+  <div className="flex items-center justify-center h-full min-h-[200px]">
     <div className="text-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-      <p className="text-gray-600">Loading...</p>
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+      <p className="text-gray-600 text-sm">Loading...</p>
     </div>
   </div>
 );
@@ -69,24 +69,28 @@ function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Real-time data synchronization
+  // Optimized data synchronization - only sync when user is active
   useEffect(() => {
     if (!currentUser) return;
 
-    const interval = setInterval(async () => {
-      try {
-        const [productsData, salesData] = await Promise.all([
-          productService.getProducts(),
-          salesService.getSales()
-        ]);
-        setProducts(productsData);
-        setSales(salesData);
-      } catch (error) {
-        console.error('Error syncing data:', error);
+    let syncInterval: NodeJS.Timeout;
+    
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        loadData(); // Sync when user returns to tab
+        syncInterval = setInterval(loadData, 60000); // Sync every minute when active
+      } else {
+        clearInterval(syncInterval); // Stop syncing when tab is hidden
       }
-    }, 30000); // Sync every 30 seconds
+    };
 
-    return () => clearInterval(interval);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    syncInterval = setInterval(loadData, 60000); // Initial sync interval
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      clearInterval(syncInterval);
+    };
   }, [currentUser]);
 
   const loadData = async () => {
