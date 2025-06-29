@@ -17,7 +17,7 @@ const Settings = lazy(() => import('./components/settings/Settings').then(module
 
 // Loading component
 const LoadingSpinner = () => (
-  <div className="flex items-center justify-center h-full">
+  <div className="flex items-center justify-center h-full min-h-[400px]">
     <div className="text-center">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
       <p className="text-gray-600">Loading...</p>
@@ -34,6 +34,7 @@ function App() {
   const [authError, setAuthError] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
+  const [dataError, setDataError] = useState('');
 
   useEffect(() => {
     // Check for existing session
@@ -46,6 +47,7 @@ function App() {
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
+        setDataError('Failed to initialize authentication');
       } finally {
         setDataLoading(false);
       }
@@ -89,6 +91,7 @@ function App() {
 
   const loadData = async () => {
     try {
+      setDataError('');
       const [productsData, salesData] = await Promise.all([
         productService.getProducts(),
         salesService.getSales()
@@ -97,6 +100,7 @@ function App() {
       setSales(salesData);
     } catch (error) {
       console.error('Error loading data:', error);
+      setDataError('Failed to load data. Please check your connection and try again.');
     }
   };
 
@@ -189,6 +193,29 @@ function App() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <LoadingSpinner />
+      </div>
+    );
+  }
+
+  // Show error state if data failed to load
+  if (dataError && !currentUser) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-xl p-8 shadow-lg text-center max-w-md">
+          <div className="text-red-500 mb-4">
+            <svg className="h-16 w-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.314 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Connection Error</h2>
+          <p className="text-gray-600 mb-4">{dataError}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200"
+          >
+            Retry
+          </button>
+        </div>
       </div>
     );
   }

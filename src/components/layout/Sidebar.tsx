@@ -50,7 +50,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Mobile Menu Button */}
       <button
         onClick={toggleMobileMenu}
-        className="lg:hidden fixed top-4 left-4 z-50 bg-white p-2 rounded-lg shadow-md border border-gray-200"
+        className="lg:hidden fixed top-4 left-4 z-50 bg-white p-2 rounded-lg shadow-md border border-gray-200 hover:bg-gray-50 transition-colors duration-200"
       >
         {isMobileMenuOpen ? (
           <X className="h-6 w-6 text-gray-600" />
@@ -96,7 +96,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     onClick={() => handleTabChange(item.id)}
                     className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
                       activeTab === item.id
-                        ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600'
+                        ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600 shadow-sm'
                         : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                     }`}
                   >

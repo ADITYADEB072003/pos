@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { Search, Package, Plus, Barcode } from 'lucide-react';
+import React, { useState, useMemo, useCallback } from 'react';
+import { Search, Package, Plus, Barcode, Scan } from 'lucide-react';
 import { Product } from '../../types';
 
 interface ProductSearchProps {
@@ -13,21 +13,49 @@ export const ProductSearch: React.FC<ProductSearchProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
 
   const categories = useMemo(() => {
     const cats = ['All', ...new Set(products.map(p => p.category))];
     return cats;
   }, [products]);
 
+  // Debounced search for better performance
+  const handleSearchChange = useCallback((value: string) => {
+    if (searchTimeout) {
+      clearTimeout(searchTimeout);
+    }
+    
+    const timeout = setTimeout(() => {
+      setSearchTerm(value);
+    }, 300);
+    
+    setSearchTimeout(timeout);
+  }, [searchTimeout]);
+
   const filteredProducts = useMemo(() => {
     return products.filter(product => {
-      const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           product.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           product.barcode.includes(searchTerm);
+      const matchesSearch = searchTerm === '' || 
+        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.barcode.includes(searchTerm);
       const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
       return matchesSearch && matchesCategory;
     });
   }, [products, searchTerm, selectedCategory]);
+
+  const handleBarcodeSearch = () => {
+    // In a real app, this would integrate with a barcode scanner
+    const barcode = prompt('Enter barcode:');
+    if (barcode) {
+      const product = products.find(p => p.barcode === barcode);
+      if (product) {
+        onAddToCart(product, 1);
+      } else {
+        alert('Product not found');
+      }
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -39,8 +67,7 @@ export const ProductSearch: React.FC<ProductSearchProps> = ({
               <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
               <input
                 type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 placeholder="Search by name, SKU, or barcode..."
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
@@ -59,6 +86,13 @@ export const ProductSearch: React.FC<ProductSearchProps> = ({
               ))}
             </select>
           </div>
+          <button
+            onClick={handleBarcodeSearch}
+            className="bg-emerald-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-emerald-700 transition-colors duration-200 flex items-center space-x-2 justify-center lg:w-auto"
+          >
+            <Scan className="h-5 w-5" />
+            <span className="hidden lg:inline">Scan</span>
+          </button>
         </div>
       </div>
 
@@ -67,7 +101,7 @@ export const ProductSearch: React.FC<ProductSearchProps> = ({
         {filteredProducts.map(product => (
           <div
             key={product.id}
-            className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200"
+            className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 transform hover:scale-[1.02]"
           >
             <div className="flex items-center justify-between mb-3">
               <div className="bg-gray-100 rounded-lg p-2">
@@ -84,7 +118,7 @@ export const ProductSearch: React.FC<ProductSearchProps> = ({
               </span>
             </div>
             
-            <h3 className="font-semibold text-gray-900 mb-1 line-clamp-2 text-sm lg:text-base">
+            <h3 className="font-semibold text-gray-900 mb-1 line-clamp-2 text-sm lg:text-base min-h-[2.5rem]">
               {product.name}
             </h3>
             <p className="text-sm text-gray-600 mb-2">{product.category}</p>
@@ -95,7 +129,7 @@ export const ProductSearch: React.FC<ProductSearchProps> = ({
               </span>
               <div className="flex items-center text-xs text-gray-500">
                 <Barcode className="h-3 w-3 mr-1" />
-                {product.sku}
+                <span className="truncate max-w-[60px]">{product.sku}</span>
               </div>
             </div>
             
